@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart City Database Query Interface</title>
+    <style>
+        #output {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #000;
+            margin-top: 20px;
+            padding: 10px;
+            overflow: auto;
+        }
+        #queryTime, #query {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Smart City</h1>
+
+    <form id="queryForm">
+        <div>
+            <input type="button" value="Search Whole Database" onclick="performSearch('searchWhole')">
+        </div>
+        <br>
+        <br>
+        <div>
+            <select id="searchType">
+                <option value="searchName">Search for Name</option>
+                <option value="ownQuery">Own Query</option>
+            </select>
+        </div>
+        <div>
+            <input type="text" id="queryInput" placeholder="Enter your query or value...">
+        </div>
+        <div>
+            <input type="button" value="Search" onclick="performSearch('searchType')">
+        </div>
+    </form>
+
+    <br>
+
+    <div id="query">The SQL query will be displayed here...</div>
+
+    <div id="queryTime">Query Time will be displayed here...</div>
+
+    <div id="output">Query results will appear here...</div>
+
+    <script>
+        table = "foo"
+
+        function performSearch(action) {
+            var searchType = document.getElementById('searchType').value;
+            var queryInput = document.getElementById('queryInput').value;
+            var query = '';
+
+            if (action === 'searchWhole') {
+                query = `SELECT * FROM ${table}`;
+            } else if (action === 'searchType') {
+                if (searchType === 'searchName') {
+                    // Replace :name placeholder with the actual value entered by the user
+                    query = `SELECT * FROM ${table} WHERE name='${queryInput}'`;
+                } else if (searchType === 'ownQuery') {
+                    query = queryInput; // Use the provided query
+                }
+            }
+
+            startQuery(query);
+        }
+
+        function startQuery(query) {
+            fetch(`/start_query?query=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const output = JSON.stringify(data.result, null, 2);
+                    document.getElementById('output').textContent = output.replace(/\n/g, '\n\n');
+                    document.getElementById('queryTime').textContent = `Query time was: ${data.query_time.toFixed(5)} seconds`;
+                    document.getElementById('query').textContent = `The SQL query was: ${query}`;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+</body>
+</html>
