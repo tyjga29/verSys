@@ -26,7 +26,7 @@
 
     <form id="queryForm">
         <div>
-            <input type="button" value="Search Whole Database" onclick="performSearch('searchWhole')">
+            <input type="button" value="Search Whole Database" onclick="searchWhole()">
         </div>
         <br>
         <br>
@@ -40,7 +40,7 @@
             <input type="text" id="queryInput" placeholder="Enter your query or value...">
         </div>
         <div>
-            <input type="button" value="Search" onclick="performSearch('searchType')">
+            <input type="button" value="Search" onclick="">
         </div>
     </form>
 
@@ -54,28 +54,13 @@
 
     <script>
         table = "foo"
-
-        function performSearch(action) {
-            var searchType = document.getElementById('searchType').value;
-            var queryInput = document.getElementById('queryInput').value;
-            var query = '';
-
-            if (action === 'searchWhole') {
-                query = `SELECT * FROM ${table}`;
-            } else if (action === 'searchType') {
-                if (searchType === 'searchName') {
-                    // Replace :name placeholder with the actual value entered by the user
-                    query = `SELECT * FROM ${table} WHERE name='${queryInput}'`;
-                } else if (searchType === 'ownQuery') {
-                    query = queryInput; // Use the provided query
-                }
-            }
-
-            startQuery(query);
+        function searchWhole() {
+            query = "search_whole"
+            startQuery(query)
         }
 
         function startQuery(query) {
-            fetch(`/start_query?query=${encodeURIComponent(query)}`)
+            fetch(`/${encodeURIComponent(query)}/${encodeURIComponent(table)}`)
                 .then(response => response.json())
                 .then(data => {
                     const output = JSON.stringify(data.result, null, 2);
