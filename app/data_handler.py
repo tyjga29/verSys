@@ -1,28 +1,22 @@
-import pyrqlite.dbapi2 as dbapi2
+from pymongo import MongoClient
+from pymongo.server_api import ServerApi
 import time
 
-database_name="foo"
+path_to_certificate="zertifikate/mongodb.pem"
 
-# Connect to the database
-connection = dbapi2.connect(
-    host='localhost',
-    port=4001,
-)
-
-cursor = connection.cursor()
+uri = "mongodb+srv://smartcity.4okvjzf.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority&appName=SmartCity"
+client = MongoClient(uri,
+                     tls=True,
+                     tlsCertificateKeyFile=path_to_certificate,
+                     server_api=ServerApi('1'))
+db = client['testDB']
+collection = db['testCol']
 
 def search_whole_table():
-    query = f"SELECT * FROM {database_name}"
-    result, elapsed_time = execute_query(query)
-    return result, elapsed_time
-
-def execute_query(query):
     start_time = time.time()
-    cursor.execute(query)
-    result = cursor.fetchall()
+    result = list(collection.find())
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(result)
     return result, elapsed_time
 
 if __name__ == "__main__":
