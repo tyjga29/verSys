@@ -41,9 +41,11 @@ async def index(request: Request):
 
 @app.get("/search_whole/{table}")
 async def search_whole(table: str):
-    overall_query_start = time.time()
     data = fetch_data(table)
-    overall_query_time = time.time() - overall_query_start
-    data['overall_query'] = overall_query_time
-    data['timestamp'] = datetime.fromtimestamp(data['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
+    timestamp = data['timestamp']
+    if isinstance(timestamp, str):
+        pass
+    else:
+        data['timestamp'] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+    
     return JSONResponse(content=jsonable_encoder(data))
