@@ -12,7 +12,7 @@
             padding: 10px;
             overflow: auto;
         }
-        #queryTime, #query {
+        #mongoQueryTime, #query, #timestamp, #overallQueryTime{
             border: 1px solid #000;
             padding: 10px;
             margin-top: 10px;
@@ -48,7 +48,11 @@
 
     <div id="query">The SQL query will be displayed here...</div>
 
-    <div id="queryTime">Query Time will be displayed here...</div>
+    <div id="mongoQueryTime">Query Time to MongoDB will be displayed here...</div>
+
+    <div id="overallQueryTime">Overall Query Time will be displayed here...</div>
+
+    <div id="timestamp">Timestamp of data will be displayed here...</div>
 
     <div id="output">Query results will appear here...</div>
 
@@ -65,7 +69,9 @@
                 .then(data => {
                     const output = JSON.stringify(data.result, null, 2);
                     document.getElementById('output').textContent = output.replace(/\n/g, '\n\n');
-                    document.getElementById('queryTime').textContent = `Query time was: ${data.query_time.toFixed(5)} seconds`;
+                    document.getElementById('mongoQueryTime').textContent = `Query time to MongoDB was: ${data.mongo_query.toFixed(5)} seconds`;
+                    document.getElementById('overallQueryTime').textContent = `Overall Query time was: ${data.overall_query.toFixed(5)} seconds`;
+                    document.getElementById('timestamp').textContent = `Timestamp of data: ${data.timestamp}`;
                     document.getElementById('query').textContent = `The SQL query was: ${query}`;
                 })
                 .catch(error => console.error('Error:', error));
