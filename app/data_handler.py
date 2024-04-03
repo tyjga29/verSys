@@ -1,40 +1,25 @@
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-from pymongo.errors import ConnectionFailure
+from pymongo import DESCENDING
 import time
 from functools import wraps
 
-path_to_certificate="zertifikate/mongodb.pem"
-
-uri = "mongodb+srv://smartcity.4okvjzf.mongodb.net/?authSource=%24external&authMechanism=MONGODB-X509&retryWrites=true&w=majority&appName=SmartCity"
-client = MongoClient(uri,
-                     tls=True,
-                     tlsCertificateKeyFile=path_to_certificate,
-                     server_api=ServerApi('1'))
-db = client['testDB']
-
-def time_query(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)  # Use await here if func is async
-        end_time = time.time()
-        duration = end_time - start_time
-        return result, duration
-    return wrapper
-
+uri = "mongodb+srv://test_user2:EOfApjntJgGosIJ6@smartcity.4okvjzf.mongodb.net/?retryWrites=true&w=majority&appName=SmartCity"
+client = MongoClient(uri, server_api=ServerApi('1'))
+db = client['sensor']
 
 def test_connection():
     try:
-        # The ismaster command is cheap and does not require auth.
-        client.admin.command('ismaster')
-        print("MongoDB connection is successful.")
-    except ConnectionFailure:
-        print("Server not available")
+        client.admin.command('ping')
+        print("Pinged your deployment. You successfully connected to MongoDB!")
+    except Exception as e:
+        print(e)
 
-@time_query
 def search_whole_table(table):
     collection = db[table]
-    matching_documents = list(collection.find())
-    return matching_documents
+    latest_document = list(collection.find().sort("timestamp", DESCENDING).limit(1))
+    for doc in latest_document:
+        if '_id' in doc:
+            doc['_id'] = str(doc['_id'])
+    return latest_document
 

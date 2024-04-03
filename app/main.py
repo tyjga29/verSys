@@ -21,11 +21,11 @@ def fetch_data(table):
         return cache[table]['data']
     else:
         # Make HTTP request to fetch data
-        result, query_time = search_whole_table(table)
+        result = search_whole_table(table)
         timestamp = time.time()
         # Update cache with fetched data and timestamp
-        cache[table] = {'data': {'mongo_query': query_time, 'result': result, 'timestamp': timestamp}, 'timestamp': timestamp}
-        return {'mongo_query': query_time, 'result': result, 'timestamp': timestamp}
+        cache[table] = {'data': {'result': result, 'timestamp': timestamp}, 'timestamp': timestamp}
+        return {'result': result, 'timestamp': timestamp}
 
 # Function to refresh cache
 def refresh_cache():
