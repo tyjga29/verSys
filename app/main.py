@@ -1,21 +1,21 @@
-from flask import Flask, jsonify, request, render_template
+from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
+from fastapi.templating import Jinja2Templates
 from data_handler import execute_query
 
-app = Flask(__name__)
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.get("/")
+async def index():
+    return templates.TemplateResponse("index.html", {"request": request})
 
-@app.route('/start_query', methods=['GET'])
-def start_query():
-    query = request.args.get('query')
+@app.get("/start_query")
+async def start_query(query: str = Query(...)):
     result, query_time = execute_query(query)
     response_data = {
         'query_time': query_time,  # Add the query time to the response data
         'result': result
     }
-    return jsonify(response_data)
+    return JSONResponse(content=response_data)
 
-if __name__ == '__main__':
-    app.run(debug=True)
