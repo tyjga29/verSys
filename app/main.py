@@ -1,21 +1,51 @@
-from fastapi import FastAPI, Query
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, Request, Query
 from fastapi.templating import Jinja2Templates
-from data_handler import execute_query
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+import time
+from threading import Timer
+from datetime import datetime
+
+from data_handler import search_whole_table
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+# Caching variables
+cache = {}
+cache_expiry = 60  # 60 seconds = 1 minute
+
+# Function to fetch data
+def fetch_data(table):
+    if table in cache and time.time() - cache[table]['timestamp'] < cache_expiry:
+        return cache[table]['data']
+    else:
+        # Make HTTP request to fetch data
+        result, query_time = search_whole_table(table)
+        timestamp = time.time()
+        # Update cache with fetched data and timestamp
+        cache[table] = {'data': {'mongo_query': query_time, 'result': result, 'timestamp': timestamp}, 'timestamp': timestamp}
+        return {'mongo_query': query_time, 'result': result, 'timestamp': timestamp}
+
+# Function to refresh cache
+def refresh_cache():
+    cache.clear()
+    Timer(cache_expiry, refresh_cache).start()
+
+# Start cache refresh scheduler
+refresh_cache()
+
 @app.get("/")
-async def index():
+async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/start_query")
-async def start_query(query: str = Query(...)):
-    result, query_time = execute_query(query)
-    response_data = {
-        'query_time': query_time,  # Add the query time to the response data
-        'result': result
-    }
-    return JSONResponse(content=response_data)
-
+@app.get("/search_whole/{table}")
+async def search_whole(table: str):
+    data = fetch_data(table)
+    timestamp = data['timestamp']
+    if isinstance(timestamp, str):
+        pass
+    else:
+        data['timestamp'] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+    
+    return JSONResponse(content=jsonable_encoder(data))
