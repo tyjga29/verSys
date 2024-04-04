@@ -1,10 +1,9 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 from datetime import datetime
 import json
 import time
 import os
+import psutil
 
 from data_handler import search_whole_table
 
@@ -12,12 +11,15 @@ server_number = int(os.environ.get("SERVER_NUMBER"))
 
 if server_number==1:
     address = 'SmartCityReceiver1'
+    port_number = 8080
 elif server_number==2:
-    address = 'SmartCityReceiver1'
+    address = 'SmartCityReceiver2'
+    port_number = 8081
 elif server_number==3:
-    address = 'SmartCityReceiver1'
+    address = 'SmartCityReceiver3'
+    port_number = 8082
 
-port_number = int(os.environ.get("PORT_NUMBER"))
+#port_number = int(os.environ.get("PORT_NUMBER"))
 
 table = "air_quality"
 
@@ -28,8 +30,9 @@ cache_expiry = 60000  # 60 seconds = 1 minute
 class SmartCityReceiver(BaseHTTPRequestHandler):
     server_version = f"{address}/0.1"
 
+    #HTTP Get Requests Server
     def do_GET(self):
-        # Check if the request path matches '/SmartCityReceiver1'
+        #Get current data
         if self.path == f'/{address}/getData':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -44,6 +47,17 @@ class SmartCityReceiver(BaseHTTPRequestHandler):
             json_data = json.dumps(data)
             json_bytes = json_data.encode('utf-8')
             self.wfile.write(json_data.encode('utf-8'))
+
+        #Get Worload of System
+        elif self.path == f'/{address}/getWorkload':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/plain')
+            self.end_headers()
+
+            cpu_percent = psutil.cpu_percent(interval=1)
+            cpu_percent_str = str(cpu_percent)
+            self.wfile.write(cpu_percent_str.encode('utf-8'))
+
         else:
             self.send_response(404)
             self.end_headers()
