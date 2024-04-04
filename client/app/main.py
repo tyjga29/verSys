@@ -11,11 +11,12 @@ servers = [
     "SmartCityReceiver2",
     #"SmartCityReceiver3"
 ]
-#ports= [
-#    '8080',
-#    "8081"
-#]
-port = int(os.environ.get("PORT_NUMBER"))
+ports= [
+    '8080',
+    "8081",
+    #8082
+]
+#port = int(os.environ.get("PORT_NUMBER"))
 
 current_server_index = 0
 def get_next_server():
@@ -24,34 +25,35 @@ def get_next_server():
     current_server_index = (current_server_index + 1) % len(servers)
     return server
 
-#current_port_index = 0
-#def get_next_port():
-#    global current_port_index
-#    port = ports[current_port_index]
-#    current_port_index = (current_port_index + 1) % len(ports)
-#    return port
+current_port_index = 0
+def get_next_port():
+    global current_port_index
+    port = ports[current_port_index]
+    current_port_index = (current_port_index + 1) % len(ports)
+    return port
 
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
+
 @app.get("/search_whole")
 async def search_whole():
-    server = get_next_server()
-    #port = get_next_port()
-    url = f"http://localhost:{port}/{server}/getData"
-    print(f"Sending Get Request to {url}")
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            print(f"Response received successfully from server {server}:")
-            print("Response ", response.text)
-            parsed_data = response.json()
-        else:
-            print(f"Failed to retrieve data. Status code: {response.status_code}")
-            parsed_data = {"error": f"Failed to retrieve data from {server}. Status code: {response.status_code}"}
-        print("Retrieved Data", parsed_data)
-        return parsed_data
-    except requests.exceptions.RequestException as e:
-        print(f"An error occurred: {e}")
-        return {"error": f"An error occurred while fetching data from {server}: {e}"}
+    for _ in range(len(servers)):
+        server = get_next_server()
+        port = get_next_port()
+        url = f"http://localhost:{port}/{server}/getData"
+        print(f"Sending Get Request to {url}")
+        try:
+            response = requests.get(url)
+            if response.status_code == 200:
+                print(f"Response received successfully from server {server}:")
+                print("Response ", response.text)
+                parsed_data = response.json()
+                return parsed_data
+            else:
+                print(f"Failed to retrieve data from {server}. Status code: {response.status_code}")
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred while fetching data from {server}: {e}")
+    return {"error": "Failed to retrieve data from all servers."}
