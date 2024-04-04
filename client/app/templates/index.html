@@ -64,9 +64,9 @@
         function startQuery(query) {
             const queryStartTime = Date.now()
 
-            const warningThreshold = 1; //3 Second Threshold
+            const warningThreshold = 1000; //1 Second Threshold
             const warningTimeout = setTimeout(() => {
-                displayWarning("Query might take longer than expected. Please wait.")
+                window.alert("Query might take longer than expected. Please wait.")
             }, warningThreshold);
 
             fetch(`/${encodeURIComponent(query)}/${encodeURIComponent(table)}`)
