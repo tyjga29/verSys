@@ -12,7 +12,7 @@
             padding: 10px;
             overflow: auto;
         }
-        #query, #timestamp, #overallQueryTime{
+        #query, #overallQueryTime, #value, #time{
             border: 1px solid #000;
             padding: 10px;
             margin-top: 10px;
@@ -50,12 +50,13 @@
 
     <div id="overallQueryTime">Overall Query Time will be displayed here...</div>
 
-    <div id="timestamp">Timestamp of data will be displayed here...</div>
+    <div id="value">The value of the sensor will be displayed here...</div>
+
+    <div id="time">The time of the measurement will be displayed here...</div>
 
     <div id="output">Query results will appear here...</div>
 
     <script>
-        table = "air_quality"
         function searchWhole() {
             query = "search_whole"
             startQuery(query)
@@ -64,23 +65,24 @@
         function startQuery(query) {
             const queryStartTime = Date.now()
 
-            const warningThreshold = 1000; //1 Second Threshold
+            const warningThreshold = 5000; //5 Second Threshold
             const warningTimeout = setTimeout(() => {
                 window.alert("Query might take longer than expected. Please wait.")
             }, warningThreshold);
 
-            fetch(`/${encodeURIComponent(query)}/${encodeURIComponent(table)}`)
+            fetch(`/${encodeURIComponent(query)}`)
                 .then(response => {
                     clearTimeout(warningTimeout);
                     return response.json();
                 })
                 .then(data => {
                     const overallQueryTime = Date.now() - queryStartTime;
-                    data.timestamp = parseFloat(data.timestamp);
-                    const output = JSON.stringify(data.result, null, 2);
-                    document.getElementById('output').textContent = output.replace(/\n/g, '\n\n');
+                    const result = data.result[0];
+                    const output = JSON.stringify(result, null, 2);
+                    document.getElementById('output').textContent = output;
+                    document.getElementById('value').textContent = result.value;
+                    document.getElementById('time').textContent = result.timestamp;
                     document.getElementById('overallQueryTime').textContent = `Overall Query time was: ${overallQueryTime} miliseconds`;
-                    document.getElementById('timestamp').textContent = `Timestamp of data: ${data.timestamp}`;
                     document.getElementById('query').textContent = `The SQL query was: ${query}`;
                 })
                 .catch(error => {

@@ -42,6 +42,7 @@ class SmartCityReceiver(BaseHTTPRequestHandler):
             print(f"Data newly retrieved at {cache[table]['timestamp_access']}.")
             print()
             json_data = json.dumps(data)
+            json_bytes = json_data.encode('utf-8')
             self.wfile.write(json_data.encode('utf-8'))
         else:
             self.send_response(404)

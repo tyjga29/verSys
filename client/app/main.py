@@ -2,50 +2,34 @@ from fastapi import FastAPI, Request, Query
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-import time
-from threading import Timer
-from datetime import datetime
+import requests
+import os
+import json
 
-from data_handler import search_whole_table
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# Caching variables
-cache = {}
-cache_expiry = 60  # 60 seconds = 1 minute
-
-# Function to fetch data
-def fetch_data(table):
-    if table in cache and time.time() - cache[table]['timestamp'] < cache_expiry:
-        return cache[table]['data']
-    else:
-        # Make HTTP request to fetch data
-        result = search_whole_table(table)
-        timestamp = time.time()
-        # Update cache with fetched data and timestamp
-        cache[table] = {'data': {'result': result, 'timestamp': timestamp}, 'timestamp': timestamp}
-        return {'result': result, 'timestamp': timestamp}
-
-# Function to refresh cache
-def refresh_cache():
-    cache.clear()
-    Timer(cache_expiry, refresh_cache).start()
-
-# Start cache refresh scheduler
-refresh_cache()
+server = 'SmartCityReceiver1'
+port_number = int(os.environ.get("PORT_NUMBER"))
 
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-@app.get("/search_whole/{table}")
-async def search_whole(table: str):
-    data = fetch_data(table)
-    timestamp = data['timestamp']
-    if isinstance(timestamp, str):
-        pass
-    else:
-        data['timestamp'] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
-    
-    return JSONResponse(content=jsonable_encoder(data))
+@app.get("/search_whole")
+async def search_whole():
+    url = f"http://localhost:{port_number}/{server}/getData"
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            print("Response received successfully:")
+            print("Response ", response.text)
+            parsed_data = response.json()
+        else:
+            print(f"Failed to retrieve data. Status code: {response.status_code}")
+        print("Parsed ", parsed_data)
+        #data = jsonable_encoder(response)
+        return parsed_data
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
