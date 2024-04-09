@@ -8,3 +8,6 @@ uvicorn main:app --reload
 Starte die Clients mit python main.py
 
 Gegebenenfalls ist es nötig Umgebungsvariablen anzulegen
+
+Um den Test zu starten im Ordner stresstest:
+locust -f locust_main.py
