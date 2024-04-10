@@ -2,22 +2,21 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from datetime import datetime
 import json
 import time
-import os
 import psutil
 
 from data_handler import search_whole_table
 
-server_number = int(os.environ.get("SERVER_NUMBER"))
+server_number = 1
 
 if server_number==1:
     address = 'SmartCityReceiver1'
-    port_number = 8080
+    port_number = 9024
 elif server_number==2:
     address = 'SmartCityReceiver2'
-    port_number = 8081
+    port_number = 9024
 elif server_number==3:
     address = 'SmartCityReceiver3'
-    port_number = 8082
+    port_number = 9024
 
 #port_number = int(os.environ.get("PORT_NUMBER"))
 
@@ -65,7 +64,7 @@ class SmartCityReceiver(BaseHTTPRequestHandler):
             self.wfile.write(bytes(message, "utf8"))
 
 def run(server_class=HTTPServer, handler_class=SmartCityReceiver, port=port_number):
-    server_address = ('', port)
+    server_address = ('0.0.0.0', port)
     httpd = server_class(server_address, handler_class)
     
     print(f'Starting {handler_class.server_version} server on port {port}...')

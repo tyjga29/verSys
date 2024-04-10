@@ -13,13 +13,13 @@ theo_servers = [
     "SmartCityReceiver2",
     "SmartCityReceiver3"
 ]
-theo_ports= [
-    '8080',
-    "8081",
-    "8082"
+theo_ips= [
+    '192.168.180.65',
+    '192.168.180.66',
+    '192.168.180.67'
 ]
 servers = []
-ports = []
+ips = []
 
 #port = int(os.environ.get("PORT_NUMBER"))
 
@@ -30,36 +30,36 @@ def get_next_server():
     current_server_index = (current_server_index + 1) % len(servers)
     return server
 
-current_port_index = 0
-def get_next_port():
-    global current_port_index
-    port = ports[current_port_index]
-    current_port_index = (current_port_index + 1) % len(ports)
-    return port
+current_ip_index = 0
+def get_next_ip():
+    global current_ip_index
+    ip = ips[current_ip_index]
+    current_ip_index = (current_ip_index + 1) % len(ips)
+    return ip
 
 overload = False
 def arrange_arrays():
-    global overload, theo_ports, theo_servers, ports, servers
+    global overload, theo_ips, theo_servers, ips, servers
     overload = False
     print("Checking status of CPU's.")
     for i in range(len(theo_servers)):
-        cpu_workload = get_cpu_workload(theo_servers[i], theo_ports[i])
+        cpu_workload = get_cpu_workload(theo_servers[i], theo_ips[i])
         if cpu_workload is not None and cpu_workload <= cpu_workload_threshold:
-            print(f"CPU Workload of {theo_servers[i]} on port {theo_ports[i]} is: {cpu_workload}%.")
+            print(f"CPU Workload of {theo_servers[i]} on ip {theo_ips[i]} is: {cpu_workload}%.")
             print("This is acceptable.")
             servers.append(theo_servers[i])
-            ports.append(theo_ports[i])
+            ips.append(theo_ips[i])
         elif cpu_workload is None:
-            print(f"No response received from server {theo_servers[i]} on port {theo_ports[i]}. Skipping...")
+            print(f"No response received from server {theo_servers[i]} on ip {theo_ips[i]}. Skipping...")
         else:
-            print(f"CPU Workload of {theo_servers[i]} on port {theo_ports[i]} is: {cpu_workload}%.")
+            print(f"CPU Workload of {theo_servers[i]} on ip {theo_ips[i]} is: {cpu_workload}%.")
             print("This exceeds the threshold. Skipping...")
 
-    if not servers and not ports:
+    if not servers and not ips:
         overload = True
 
-def get_cpu_workload(server, port):
-    url = f"http://localhost:{port}/{server}/getWorkload"
+def get_cpu_workload(server, ip):
+    url = f"{ip}:9024/{server}/getWorkload"
     print(f"Sending Get Request to {url}")
     try:
         response = requests.get(url)
@@ -102,8 +102,8 @@ async def search_whole():
 
     for _ in range(len(servers)):
         server = get_next_server()
-        port = get_next_port()
-        url = f"http://localhost:{port}/{server}/getData"
+        ip = get_next_ip()
+        url = f"{ip}:9024/{server}/getData"
         print(f"Sending Get Request to {url}")
         try:
             response = requests.get(url)
