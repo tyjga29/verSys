@@ -2,12 +2,12 @@ from locust import HttpUser, task, between
 import json
 
 class MyUser(HttpUser):
-    host = "http://127.0.0.1:8000"
+    host = "http://10.8.0.1:9023/"
     wait_time = between(1, 3)
 
     @task
     def search_and_verify(self):
-        with self.client.get("/search_whole/", catch_response=True) as response:  # sending GET request to the specified endpoint
+        with self.client.get("search_whole/", catch_response=True) as response:  # sending GET request to the specified endpoint
             try:
                 data = response.json()
                 if "result" in data and isinstance(data["result"], list) and len(data["result"]) == 1:

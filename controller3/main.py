@@ -64,7 +64,7 @@ class SmartCityReceiver(BaseHTTPRequestHandler):
             self.wfile.write(bytes(message, "utf8"))
 
 def run(server_class=HTTPServer, handler_class=SmartCityReceiver, port=port_number):
-    server_address = ('', port)
+    server_address = ('0.0.0.0', port)
     httpd = server_class(server_address, handler_class)
     
     print(f'Starting {handler_class.server_version} server on port {port}...')

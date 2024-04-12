@@ -70,9 +70,15 @@
                 window.alert("Query might take longer than expected. Please wait.")
             }, warningThreshold);
 
+            const cancelThreshold = 20000; // 20 Second Threshold
+            const cancelTimeout = setTimeout(() => {
+                window.alert("Error: Please reload site and try again.");
+            }, cancelThreshold);
+
             fetch(`/${encodeURIComponent(query)}`)
                 .then(response => {
                     clearTimeout(warningTimeout);
+                    clearTimeout(cancelTimeout)
                     return response.json();
                 })
                 .then(data => {
@@ -87,14 +93,10 @@
                 })
                 .catch(error => {
                     clearTimeout(warningTimeout);
+                    clearTimeout(cancelTimeout);
+                    window.alert("Warning: An error occured. No new information was retrieved.Please reload site and try again");
                     console.error('Error:', error)
                 });
-        }
-
-        function displayWarning(message) {
-            const warningElement = document.getElementById('warning');
-            warningElement.textContent = message;
-            warningElement.style.display = 'block'
         }
     </script>
 

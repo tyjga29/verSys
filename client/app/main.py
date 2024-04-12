@@ -1,6 +1,7 @@
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 import requests
+from requests.exceptions import Timeout
 import time
 
 app = FastAPI()
@@ -58,11 +59,11 @@ def arrange_arrays():
     if not servers and not ips:
         overload = True
 
-def get_cpu_workload(server, ip):
-    url = f"{ip}:9024/{server}/getWorkload"
+def get_cpu_workload(server, ip, timeout=5):
+    url = f"http://{ip}:9024/{server}/getWorkload"
     print(f"Sending Get Request to {url}")
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=timeout)
         if response.status_code == 200:
             print(f"Response received successfully from server {server}:")
             print("Response ", response.text)
@@ -70,6 +71,9 @@ def get_cpu_workload(server, ip):
         else:
             print(f"Failed to retrieve data from. Status code: {response.status_code}")
             return None
+    except Timeout:
+        print(f"Timeout occured while connectin to {url}")
+        return None
     except requests.exceptions.RequestException as e:
         print(f"An error occurred while fetching data from: {e}")
         return None
@@ -81,7 +85,7 @@ async def index(request: Request):
 last_server_update = None
 duration_update_servers = 60 #60 seconds
 @app.get("/search_whole")
-async def search_whole():
+async def search_whole(timeout=5):
     global last_server_update, duration_update_servers, overload, servers
     print()
     if (last_server_update is not None):
@@ -91,6 +95,7 @@ async def search_whole():
     # Check if overload is true at the beginning
     if overload:
         print("Server overload detected. Retrying...")
+        time.sleep(5)
         arrange_arrays()
         last_server_update = time.time()
         return await search_whole()  # Retry the function
@@ -103,10 +108,10 @@ async def search_whole():
     for _ in range(len(servers)):
         server = get_next_server()
         ip = get_next_ip()
-        url = f"{ip}:9024/{server}/getData"
+        url = f"http://{ip}:9024/{server}/getData"
         print(f"Sending Get Request to {url}")
         try:
-            response = requests.get(url)
+            response = requests.get(url, timeout=timeout)
             if response.status_code == 200:
                 print()
                 print(f"Response received successfully from server {server}:")
@@ -115,6 +120,8 @@ async def search_whole():
                 return parsed_data
             else:
                 print(f"Failed to retrieve data from {server}. Status code: {response.status_code}")
+        except Timeout:
+            print(f"Timeout occurred while connecting to {url}.")
         except requests.exceptions.RequestException as e:
             print(f"An error occurred while fetching data from {server}: {e}")
     return {"error": "Failed to retrieve data from all servers."}
