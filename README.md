@@ -33,6 +33,6 @@ Wie das System zu verteilen ist:
     - Andere controller starten mit:
         python main.py
     - Test startem mit:
-        locust -f locust_main.py
+        locust -P 9025 -f locust_main.py
         unter: http://10.8.0.1:9025/
 
